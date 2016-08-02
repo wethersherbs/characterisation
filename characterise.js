@@ -19,7 +19,8 @@ const send = ({ url, ... options }) => fetch(url, options)
 // Response = { body :: String, headers :: [String], status :: Int }
 // Request  = { url :: String, body :: String, headers :: [String] }
 // Test     = [Request, Response]
-// Diff     = ?
+// Diff     = [{ before :: [String], after :: [String], start :: Int
+//              context :: { before :: [String], after :: [String] }]
 
 // Generate tests for this characterisation suite.
 // generate :: (* -> *) -> (Response -> String) -> [Request] -> [Test]
@@ -34,7 +35,7 @@ export const generate = (fixturify, responsify) => {
 }
 
 // Run the tests generated for this characterisation suite.
-// test :: (* -> *) -> (Response -> String) -> [Test] -> [Diff]
+// test :: (* -> *) -> (Response -> String) -> [Test] -> [[Diff]]
 export const test = (fixturify, responsify) => {
   // Before testing, set the database state to the same
   // configuration used at generation time.
