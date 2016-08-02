@@ -1,6 +1,7 @@
 // Automatic, general purpose characterisation.
 
 import fetch from 'node-fetch'
+import { map } from 'ramda'
 import { diffWords as diff } from 'diff'
 
 // Send a request to the app. We can't necessarily start a request
@@ -18,14 +19,14 @@ const send = ({ url, ... options }) => fetch(url, options)
 
 // Generate tests for this characterisation suite.
 // generate :: (* -> *) -> (Response -> String) -> [Request] -> [Test]
-export const generate = (fixturify, responsify) => requests => {
+export const generate = (fixturify, responsify) => {
   // Before generating the tests, set the database state
   // to some known configuration as a starting point.
   fixturify()
 
   // For every request, make the call, do any output
   // processing, and then return the storable responses.
-  return requests.map(
+  return map(
     r => send(r)
       .then(responsify)
       .then(x => [r, x])
@@ -34,14 +35,14 @@ export const generate = (fixturify, responsify) => requests => {
 
 // Run the tests generated for this characterisation suite.
 // test :: (* -> *) -> (Response -> String) -> [Test] -> [Diff]
-export const test = (fixturify, responsify) => tests => {
+export const test = (fixturify, responsify) => {
   // Before testing, set the database state to the same
   // configuration used at generation time.
   fixturify()
 
   // For each test, run the same processing on the response
   // and compare to the result generated earlier.
-  return tests.map(
+  return map(
     ([req, res]) => send(req)
       .then(responsify)
       .then(x => diff(res, x))
