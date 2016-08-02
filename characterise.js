@@ -2,19 +2,21 @@
 
 import fetch from 'node-fetch'
 import { composeP, map } from 'ramda'
+import { createTwoFilesPatch as difftool } from 'diff'
 
 // Some clever function to work out the differences between expected
 // and actual. Haven't actually worked out what this will do yet, but
 // we're all very excited to find out.
-const diff = before => after => []
+const diff = before => after => difftool('expected', 'actual', before, after)
 
 // Send a request to the app. We can't necessarily start a request
 // before the last has totally completed, in case output is unbuffered.
 // send :: Request -> Promise Response
 const send = ({ url, ... options }) => fetch(url, options)
-  .then(({ headers, status, ... res }) => ({
-    headers, status, json: res.json()
+  .then(response => ({
+    headers: response.headers, status: response.status, json: response.json()
   }))
+  .catch(console.log.bind(console))
 
 // Response = { body :: String, headers :: [String], status :: Int }
 // Request  = { url :: String, body :: String, headers :: [String] }
