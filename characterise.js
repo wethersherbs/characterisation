@@ -2,7 +2,11 @@
 
 import fetch from 'node-fetch'
 import { composeP, map } from 'ramda'
-import { diffWords as diff } from 'diff'
+
+// Some clever function to work out the differences between expected
+// and actual. Haven't actually worked out what this will do yet, but
+// we're all very excited to find out.
+const diff = before => after => []
 
 // Send a request to the app. We can't necessarily start a request
 // before the last has totally completed, in case output is unbuffered.
@@ -26,7 +30,7 @@ export const generate = (fixturify, responsify) => {
 
   // For every request, make the call, do any output
   // processing, and then return the storable responses.
-  return map(composeP(x => [r, x], responsify, send))
+  return map(r => composeP(x => [r, x], responsify, send) (r))
 }
 
 // Run the tests generated for this characterisation suite.
