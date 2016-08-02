@@ -1,7 +1,7 @@
 // Automatic, general purpose characterisation.
 
 import fetch from 'node-fetch'
-import { map } from 'ramda'
+import { composeP, map } from 'ramda'
 import { diffWords as diff } from 'diff'
 
 // Send a request to the app. We can't necessarily start a request
@@ -26,11 +26,7 @@ export const generate = (fixturify, responsify) => {
 
   // For every request, make the call, do any output
   // processing, and then return the storable responses.
-  return map(
-    r => send(r)
-      .then(responsify)
-      .then(x => [r, x])
-  )
+  return map(composeP(x => [r, x], responsify, send))
 }
 
 // Run the tests generated for this characterisation suite.
@@ -42,9 +38,5 @@ export const test = (fixturify, responsify) => {
 
   // For each test, run the same processing on the response
   // and compare to the result generated earlier.
-  return map(
-    ([req, res]) => send(req)
-      .then(responsify)
-      .then(x => diff(res, x))
-  )
+  return map(([req, res]) => composeP(diff(res), responsify, send) (req))
 }
