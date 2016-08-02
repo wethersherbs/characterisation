@@ -39,6 +39,7 @@
     "node-fetch": "^1.5.3"
   },
   "ava": {
-    "babel": "inherit"
+    "babel": "inherit",
+    "require": "babel-core/register"
   }
 }
