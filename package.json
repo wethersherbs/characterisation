@@ -4,8 +4,8 @@
   "description": "Automated record/replay characterisation test generation",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d lib",
-    "test": "ava",
+    "build": "babel src -d lib ; rollup lib/Main.js | babel --plugins transform-es2015-modules-commonjs > index.js",
+    "test": "babel src -d lib ; rollup test/index.js | babel --plugins transform-es2015-modules-commonjs | node",
     "watch": "watch \"npm test && npm run build\" src"
   },
   "repository": {
@@ -27,19 +27,15 @@
   },
   "homepage": "https://github.com/wethersherbs/characterisation#readme",
   "devDependencies": {
-    "ava": "^0.15.2",
-    "babel-plugin-syntax-async-functions": "^6.13.0",
-    "babel-plugin-transform-async-to-generator": "^6.8.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.11.5",
-    "babel-plugin-transform-runtime": "^6.12.0",
+    "babel-cli": "^6.14.0",
+    "babel-plugin-transform-do-expressions": "^6.8.0",
+    "babel-plugin-transform-es2015-destructuring": "^6.9.0",
+    "babel-plugin-transform-es2015-spread": "^6.8.0",
+    "rollup": "^0.34.10",
+    "tape": "^4.6.0",
     "watch": "^0.19.2"
   },
   "dependencies": {
-    "diff": "^2.2.3",
-    "ramda": "^0.21.0"
-  },
-  "ava": {
-    "babel": "inherit",
-    "require": "babel-core/register"
+    "diff": "^2.2.3"
   }
 }
