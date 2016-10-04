@@ -28,14 +28,17 @@
   "homepage": "https://github.com/wethersherbs/characterisation#readme",
   "devDependencies": {
     "babel-cli": "^6.14.0",
-    "babel-plugin-transform-do-expressions": "^6.8.0",
     "babel-plugin-transform-es2015-destructuring": "^6.9.0",
-    "babel-plugin-transform-es2015-spread": "^6.8.0",
-    "rollup": "^0.34.10",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
+    "babel-plugin-transform-es2015-parameters": "^6.17.0",
+    "babel-plugin-transform-object-rest-spread": "^6.8.0",
+    "rollup": "^0.36.1",
     "tape": "^4.6.0",
     "watch": "^0.19.2"
   },
   "dependencies": {
-    "diff": "^2.2.3"
+    "array-equal": "^1.0.0",
+    "diff": "^2.2.3",
+    "wi-jit": "^1.0.0"
   }
 }

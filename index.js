@@ -3,7 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.test = exports.generate = undefined;
+exports.toFuture = exports.test = exports.generate = undefined;
+
+var _wiJit = require('wi-jit');
 
 var _http = require('http');
 
@@ -11,71 +13,40 @@ var _url = require('url');
 
 var _diff = require('diff');
 
-// compose : (b -> c) -> (a -> b) -> a -> c
-const compose$1 = f => g => x => f(g(x));
+// concat : Semigroup a => a -> a -> a
+const concat = (0, _wiJit.uncurryN)(xs => ys => xs.concat(ys));
 
-// id : a -> a
-const id = x => x;
+// equals : Setoid a => a -> a -> Bool
+const equals = (0, _wiJit.uncurryN)(x => y => x.equals ? x.equals(y) : x === y);
 
-// Create a Future type from a binary function
-// Future : ((e -> b) -> (a -> b) -> b) -> Future e a
-const Future = x => {
-  // ap : Future e (a -> b) | Future e a -> Future e b
-  const ap = b => chain(b.map);
+// lift2 : Applicative f => (a -> b -> c) -> f a -> f b -> f c
+const lift2 = (0, _wiJit.uncurryN)(f => a => a.map(f).ap);
 
-  // bimap : Future e a | (e -> f) -> (a -> b) -> Future f b
-  const bimap = f => g => Future(rej => res => x.fork(compose$1(f)(rej))(compose$1(g)(res)));
+// map : Functor f => (a -> b) -> f a -> f b
+const map$1 = (0, _wiJit.uncurryN)(f => xs => xs.map(f));
 
-  // chain : Future e a | (a -> Future e b) -> Future e b
-  const chain = f => Future(rej => res => f(x).fork(rej)(res));
+// pair : a -> b -> (a, b)
+const pair = (0, _wiJit.uncurryN)(a => b => [a, b]);
 
-  // join : Future e (Future e a) | Future e a
-  const join = () => Future(rej => res => x.fork(rej, y => y.fork(rej, res)));
+// sequence : (Applicative f, Traversable t) => (a -> f a) -> t (f a) -> f (t a)
+const sequence$1 = (0, _wiJit.uncurryN)(unit => xs => xs.traverse(_wiJit.id, unit));
 
-  // map : Future e a | (a -> b) -> Future e b
-  const map = bimap(id);
+// traverse : (Applicative f, Traversable t) =>
+//   (a -> f b) -> (a -> f a) -> f (t b)
+const traverse = (0, _wiJit.uncurryN)(f => unit => xs => xs.traverse(f)(unit));
 
-  return { ap, bimap, chain, join, map };
+const Future = fork => {
+  const bimap = (0, _wiJit.uncurryN)(f => g => Future(rej => res => fork((0, _wiJit.composeN)(f, rej), (0, _wiJit.composeN)(g, res))));
+
+  const chain = f => Future(rej => res => fork(rej, x => f(x).fork(rej, res)));
+
+  const map = bimap(_wiJit.id);
+
+  return { ap: chain(map), bimap, chain, map, fork };
 };
 
 // unit : a -> Future e a
 const unit = x => Future(rej => res => res(x));
-
-// compose : (b -> c) -> (a -> b) -> a -> c
-const compose$2 = f => g => x => f(g(x));
-
-// K : a -> b -> a
-const K$1 = x => _ => x;
-
-// Create an IO type from a thunk.
-// IO : (-> a) -> IO a
-const IO = f => {
-  // ap : IO (a -> b) | IO a -> IO b
-  const ap = g => chain(g.map);
-
-  // chain : IO a | (a -> IO b) -> IO b
-  const chain = compose$2(IO)(compose$2(unsafePerform));
-
-  // join : IO IO a | IO a
-  const join = () => IO(() => f().unsafePerform());
-
-  // map : IO a | (a -> b) -> IO a -> IO b
-  const map = g => chain(compose$2(IO)(g));
-
-  return {
-    ap,
-    chain,
-    join,
-    map,
-    unsafePerform: f
-  };
-};
-
-// unit : a -> IO a
-const unit$1 = compose$2(IO)(K$1);
-
-// unsafePerform : IO a | a
-const unsafePerform = x => x.unsafePerform();
 
 var _extends = Object.assign || function (target) {
   for (var i = 1; i < arguments.length; i++) {
@@ -91,18 +62,17 @@ var _extends = Object.assign || function (target) {
 
 // Fetch a resource from a server using http.request.
 // fetch : Request -> Future Error (IO Response)
-const fetch$1 = url => options => Future(no => yes => (0, _http.request)(_extends({}, (0, _url.parse)(url), options), res => {
-  const body = [];
+const fetch$1 = url$$1 => options => Future(no => yes => (0, _http.request)(_extends({}, (0, _url.parse)(url$$1), options), res => {
+  const data = [];
   const status = res.statusCode;
   const headers = res.headers;
 
-  res.on('data', x => body.push(x));
+  res.on('data', data.push.bind(data));
   res.on('error', no);
-  res.on('end', () => yes(unit$1({
-    status,
-    headers,
-    body: body.join('')
-  })));
+  res.on('end', () => {
+    const body = data.join('');
+    yes({ status, headers, body });
+  });
 }));
 
 var _slicedToArray = function () {
@@ -139,64 +109,42 @@ function _objectWithoutProperties(obj, keys) {
 
 // Automatic, general purpose characterisation.
 
-// Carry out a formatted request.
-// fetch : (Response -> Responsified) -> Request -> String
-const fetch = responsify => _ref => {
-  let url = _ref.url;
+// Create an AJAX task for a test.
+// fetch : (Response -> String) -> Request -> Future Error String
+const fetch$$1 = _ref => {
+  let url$$1 = _ref.url;
 
   let options = _objectWithoutProperties(_ref, ['url']);
 
-  return map(responsify)(fetch$1(url)(options));
+  return fetch$1(url$$1, options);
 };
 
-// Response = { body : String, headers : [String], status : Int }
-// Responsified = String
-// Request = { url : String, body : String, headers : [String] }
-// Test = (Request, String)
-// Diff = String
+// Convert a request spec into a testing task.
+// testify : (Response -> String) -> Request -> Future Error Test
+const testify = format => request$$1 => request$$1.map((0, _wiJit.composeN)(pair(request$$1), format));
+
+// Run the request, and check that it matches the response.
+const comparify = responsify => _ref2 => {
+  var _ref3 = _slicedToArray(_ref2, 2);
+
+  let request$$1 = _ref3[0];
+  let response = _ref3[1];
+  return fetch$$1(req).map((0, _wiJit.composeN)((0, _diff.createTwoFilesPatch)(res), format));
+};
 
 // Generate tests for this characterisation suite.
-// generate : (-> *) -> (Response -> Responsified)
-//   -> [Request] -> Future Error [Test]
-const generate = fixturify => responsify => {
-  // Before generating the tests, set the database state
-  // to some known configuration as a starting point.
-  fixturify();
-
-  // Produce the promises of generated tests.
-  // testify : [Request] -> Future Error [Test]
-  return compose(sequence(unit))(map(request => {
-    const url = request.url;
-
-    const options = _objectWithoutProperties(request, ['url']);
-
-    return map(x => [request, responsify(x)])(fetch$1(url)(options));
-  }));
-};
+// generate : Future e a -> (Response -> String) -> [Request] -> Future Error [Test]
+const generate = fixturify => responsify => (0, _wiJit.composeN)(fixturify.bind, sequence(unit), map(map(responsify), testify));
 
 // Run the tests generated for this characterisation suite.
-// test : (-> *) -> (Response -> Responsified)
-//   -> [Test] -> Future Error [Diff]
-const test = fixturify => responsify => {
-  // Before testing, set the database state to the same
-  // configuration used at generation time.
-  fixturify();
+// test : Future e a -> (Response -> String) -> [Test] -> Future Error [Diff]
+const test = fixturify => responsify => (0, _wiJit.composeN)(fixturify.bind, sequence(unit), map(map(responsify), comparify));
 
-  // Produce the diff results of the tests.
-  // diffify : [Test] -> Future Error [Diff]
-  return compose(sequence(unit))(map(_ref2 => {
-    var _ref3 = _slicedToArray(_ref2, 2);
-
-    let request = _ref3[0];
-    let expected = _ref3[1];
-    const url = request.url;
-
-    const options = _objectWithoutProperties(request, ['url']);
-
-    return map(x => (0, _diff.createTwoFilesPatch)('expected', 'actual', expected, responsify(x)))(fetch$1(url)(options));
-  }));
-};
+// Convert a Promise-returning thunk to a Future.
+// toFuture : Promise e a -> Future e a
+const toFuture = promiser => unit(flip(res => promiser().then(res).catch));
 
 exports.generate = generate;
 exports.test = test;
+exports.toFuture = toFuture;
 

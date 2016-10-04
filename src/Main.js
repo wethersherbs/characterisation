@@ -1,61 +1,39 @@
 // Automatic, general purpose characterisation.
 
+import { composeN } from 'wi-jit'
+import { pair } from './Prelude'
+
 import { fetch as send } from './Network'
 import { unit as Future } from './Control/Future'
 import { createTwoFilesPatch as diff } from 'diff'
 
-// Carry out a formatted request.
-// fetch : (Response -> Responsified) -> Request -> String
-const fetch = responsify => ({ url, ... options }) =>
-  map(responsify)(send(url)(options))
+// Create an AJAX task for a test.
+// fetch : (Response -> String) -> Request -> Future Error String
+const fetch = ({ url, ... options }) => send(url, options)
 
-// Response = { body : String, headers : [String], status : Int }
-// Responsified = String
-// Request = { url : String, body : String, headers : [String] }
-// Test = (Request, String)
-// Diff = String
+// Convert a request spec into a testing task.
+// testify : (Response -> String) -> Request -> Future Error Test
+const testify = format => request =>
+  request.map(composeN(pair(request), format))
+
+// Run the request, and check that it matches the response.
+const comparify = responsify => ([request, response]) =>
+  fetch(req).map(composeN(diff(res), format))
 
 // Generate tests for this characterisation suite.
-// generate : (-> *) -> (Response -> Responsified)
-//   -> [Request] -> Future Error [Test]
-export const generate = fixturify => responsify => {
-  // Before generating the tests, set the database state
-  // to some known configuration as a starting point.
-  fixturify()
-
-  // Produce the promises of generated tests.
-  // testify : [Request] -> Future Error [Test]
-  return compose(sequence(Future))(
-    map(request => {
-      const { url, ... options } = request
-
-      return map
-        (x => [request, responsify(x)])
-        (send(url)(options))
-    })
-  )
-}
+// generate : Future e a -> (Response -> String) -> [Request] -> Future Error [Test]
+export const generate = fixturify => responsify => composeN(
+  fixturify.bind, sequence(Future), map(map(responsify), testify)
+)
 
 // Run the tests generated for this characterisation suite.
-// test : (-> *) -> (Response -> Responsified)
-//   -> [Test] -> Future Error [Diff]
-export const test = fixturify => responsify => {
-  // Before testing, set the database state to the same
-  // configuration used at generation time.
-  fixturify()
+// test : Future e a -> (Response -> String) -> [Test] -> Future Error [Diff]
+export const test = fixturify => responsify => composeN(
+  fixturify.bind, sequence(Future), map(map(responsify), comparify)
+)
 
-  // Produce the diff results of the tests.
-  // diffify : [Test] -> Future Error [Diff]
-  return compose(sequence(Future))(
-    map(([request, expected]) => {
-      const { url, ... options } = request
-
-      return map
-        (x => diff(
-          'expected', 'actual',
-          expected, responsify(x)
-        ))
-        (send(url)(options))
-    })
-  )
-}
+// Convert a Promise-returning thunk to a Future.
+// toFuture : Promise e a -> Future e a
+export const toFuture = promiser => Future(
+  flip(res => promiser().then(res).catch)
+)

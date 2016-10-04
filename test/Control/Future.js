@@ -1,7 +1,5 @@
-import test from 'tape'
-
-test('Control.Future', assert => {
-  assert.ok(true, 'Need to write some tests')
-
-  assert.end()
-})
+// import './Future/Ap'
+// import './Future/Bimap'
+// import './Future/Chain'
+// import './Future/Map'
+import './Future/Unit'
