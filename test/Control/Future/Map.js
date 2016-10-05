@@ -2,12 +2,10 @@ import test from 'tape'
 
 import { unit } from '../../../src/Control/Future'
 
-test('Control.Future.unit', assert => {
-  const test = Symbol()
-
-  unit(test).fork(
+test('Control.Future.map', assert => {
+  unit(2).map(x => x + 3).fork(
     _ => assert.fail('lifts to resolve'),
-    x => assert.same(test, x, 'lifts into applicative')
+    x => assert.same(5, x, 'maps resolve')
   )
 
   assert.end()

@@ -1,12 +1,14 @@
-import { composeN, id, uncurryN } from 'wi-jit'
+import { compose, id, uncurryN } from 'wi-jit'
 import { chain as chain_ } from '../Prelude'
 
 export const Future = fork => {
+  fork = uncurryN(fork)
+
   const bimap = uncurryN(
     f => g => Future(
       rej => res => fork(
-        composeN(f, rej),
-        composeN(g, res)
+        compose(rej)(f),
+        compose(res)(g)
       )
     )
   )
