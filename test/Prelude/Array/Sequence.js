@@ -1,8 +1,8 @@
 import test from 'tape'
 
 import { id } from 'wi-jit'
-import '../../../src/Prelude'
-import { unit } from '../../../src/Control/Future'
+import '../../../lib/Prelude'
+import { unit } from '../../../lib/Control/Future'
 
 test('Array.prototype.sequence', assert => {
   const test = Symbol()

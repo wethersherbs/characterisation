@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { map } from '../../src/Prelude'
+import { map } from '../../lib/Prelude'
 
 test('Prelude.map', assert => {
   const test = Symbol()

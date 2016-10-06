@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { unit } from '../../../src/Control/Future'
+import { unit } from '../../../lib/Control/Future'
 
 test('Control.Future.unit', assert => {
   const test = Symbol()

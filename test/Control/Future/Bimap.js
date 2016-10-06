@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { Future } from '../../../src/Control/Future'
+import { Future } from '../../../lib/Control/Future'
 
 test('Control.Future.bimap', assert => {
   let flag = true

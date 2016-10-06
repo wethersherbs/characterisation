@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import '../../../src/Prelude'
+import '../../../lib/Prelude'
 
 test('Array.prototype.ap', assert => {
   assert.same([2], [1].ap([x => x + 1]), 'applies singles')

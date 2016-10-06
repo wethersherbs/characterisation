@@ -1,8 +1,8 @@
 import test from 'tape'
 
 import { id } from 'wi-jit'
-import { lift2, pair } from '../../src/Prelude'
-import { unit } from '../../src/Control/Future'
+import { lift2, pair } from '../../lib/Prelude'
+import { unit } from '../../lib/Control/Future'
 
 test('Prelude.lift2', assert => {
   const test1 = Symbol()

@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { Future, unit } from '../../../src/Control/Future'
+import { Future, unit } from '../../../lib/Control/Future'
 
 test('Control.Future.ap', assert => {
   unit(2).ap(unit(x => x * -100)).fork(

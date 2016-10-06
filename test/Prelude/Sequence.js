@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { sequence } from '../../src/Prelude'
+import { sequence } from '../../lib/Prelude'
 
 test('Prelude.sequence', assert => {
   const test = Symbol()

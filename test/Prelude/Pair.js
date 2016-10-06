@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { pair } from '../../src/Prelude'
+import { pair } from '../../lib/Prelude'
 
 test('Prelude.pair', assert => {
   const test1 = Symbol()

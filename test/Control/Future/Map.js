@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { unit } from '../../../src/Control/Future'
+import { unit } from '../../../lib/Control/Future'
 
 test('Control.Future.map', assert => {
   unit(2).map(x => x + 3).fork(

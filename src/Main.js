@@ -1,19 +1,15 @@
 // Automatic, general purpose characterisation.
 
-import { composeN } from 'wi-jit'
+import { composeN, constant, uncurryN } from 'wi-jit'
 import { map, pair, sequence } from './Prelude'
 
-import { fetch as send } from './Network'
 import { unit } from './Control/Future'
+import { fetch } from './Network'
 import { createTwoFilesPatch } from 'diff'
 
 // Diff two strings as expected vs actual.
 // diff : String -> String -> String
 const diff = uncurryN(createTwoFilesPatch)('expected', 'actual')
-
-// Create an AJAX task for a test.
-// fetch : Request -> Future Error String
-const fetch = ({ url, ... options }) => send(url, options)
 
 // Convert a request spec into a testing task.
 // testify : (Response -> String) -> Request -> Future Error Test
@@ -27,13 +23,13 @@ const comparify = responsify => ([request, response]) =>
 // Generate tests for this characterisation suite.
 // generate : Future e a -> (Response -> String) -> [Request] -> Future Error [Test]
 export const generate = fixturify => responsify => composeN(
-  fixturify.bind, sequence(unit), map(map(responsify), testify)
+  fixturify.chain, constant, sequence(unit), map(map(responsify), testify)
 )
 
 // Run the tests generated for this characterisation suite.
 // test : Future e a -> (Response -> String) -> [Test] -> Future Error [Diff]
 export const test = fixturify => responsify => composeN(
-  fixturify.bind, sequence(unit), map(map(responsify), comparify)
+  fixturify.chain, constant, sequence(unit), map(map(responsify), comparify)
 )
 
 // Convert a Promise-returning thunk to a Future.

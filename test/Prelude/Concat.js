@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { concat } from '../../src/Prelude'
+import { concat } from '../../lib/Prelude'
 
 test('Prelude.concat', assert => {
   assert.same([2, 3], concat([2], [3]), 'concats lists')

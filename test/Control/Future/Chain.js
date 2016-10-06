@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import { Future, unit } from '../../../src/Control/Future'
+import { Future, unit } from '../../../lib/Control/Future'
 
 test('Control.Future.map', assert => {
     let flag1 = true

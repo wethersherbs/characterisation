@@ -1,6 +1,6 @@
 import test from 'tape'
 
-import '../../../src/Prelude'
+import '../../../lib/Prelude'
 
 test('Array.prototype.chain', assert => {
   const test = Symbol()
