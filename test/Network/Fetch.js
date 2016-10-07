@@ -1,10 +1,13 @@
 import test from 'tape'
 
 import { fetch } from '../../lib/Network'
-import { withServer } from '../server'
+import '../server'
 
 test('Network.fetch', assert => {
-  withServer(fetch({ url: 'http://127.0.0.1:3000/' }))
+  // Get round Nock's monkey-patching.
+  setTimeout(_ => assert.end())
+
+  fetch({ url: 'http://www.example.com/' })
     .fork(
       x => assert.fail('fails to request'),
       ({ status, headers, body }) => {
